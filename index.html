@@ -1,144 +1,399 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LL(1) Grammar Engine & Studio</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Website</title>
+
+  <!-- Social Media Preview Tags (Open Graph) -->
+  <meta property="og:title" content="Welcome to My Website" />
+  <meta property="og:description" content="Check out my project hosted live on GitHub Pages!" />
+  <meta property="og:image" content="https://via.placeholder.com/1200x630.png" />
+  <meta property="og:type" content="website" />
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* CSS Variables for Light/Dark Theme */
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --primary: #3b82f6;
+      --primary-hover: #60a5fa;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Global Reset & Typography */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Navigation Bar */
+    header {
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    nav {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .theme-btn {
+      background-color: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+
+    .theme-btn:hover {
+      border-color: var(--primary);
+    }
+
+    /* Layout Containers */
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      flex: 1;
+    }
+
+    section {
+      margin-bottom: 4rem;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 3rem 1rem;
+    }
+
+    .hero h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+
+    .hero p {
+      color: var(--text-muted);
+      font-size: 1.125rem;
+      max-width: 600px;
+      margin: 0 auto 1.5rem auto;
+    }
+
+    .cta-btn {
+      display: inline-block;
+      background-color: var(--primary);
+      color: #ffffff;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background-color 0.2s ease;
+    }
+
+    .cta-btn:hover {
+      background-color: var(--primary-hover);
+    }
+
+    /* Features Grid */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+    }
+
+    .card h3 {
+      margin-bottom: 0.5rem;
+      font-size: 1.2rem;
+    }
+
+    .card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* Contact Form */
+    .contact-container {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      max-width: 600px;
+      margin: 0 auto;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .contact-container h2 {
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+
+    .contact-container p {
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-group label {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: border-color 0.2s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .submit-btn {
+      background-color: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 0.75rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .submit-btn:hover {
+      background-color: var(--primary-hover);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 2rem 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: auto;
+    }
+
+    /* Back to Top Floating Button */
+    #backToTop {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 44px;
+      height: 44px;
+      background-color: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 1000;
+    }
+
+    #backToTop:hover {
+      transform: translateY(-3px);
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Top Application Bar -->
-  <header class="app-header">
-    <div class="brand">
-      <span class="brand-logo">/&gt;</span>
-      <span class="brand-title">LL(1) Parser Studio</span>
-      <span class="version-tag">v2.4</span>
-    </div>
-    <div class="header-status">
-      <span class="status-indicator"></span> Engine Ready
-    </div>
+  <!-- Navigation Bar -->
+  <header>
+    <nav>
+      <a href="#" class="logo">My Webpage</a>
+      <button id="theme-toggle" class="theme-btn">🌙 Dark Mode</button>
+    </nav>
   </header>
 
-  <!-- Segmented Navigation -->
-  <nav class="nav-bar">
-    <div class="nav-tabs">
-      <button class="tab-btn active" data-page="page1">
-        <span class="tab-idx">01</span> Grammar Input
-      </button>
-      <button class="tab-btn" data-page="page2">
-        <span class="tab-idx">02</span> Analysis & Matrix
-      </button>
-      <button class="tab-btn" data-page="page3">
-        <span class="tab-idx">03</span> Execution Trace & AST
-      </button>
-    </div>
-  </nav>
+  <!-- Main Content Area -->
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <h1>Welcome to My Live Site</h1>
+      <p>This is my customized static webpage built with clean HTML, CSS, and interactive JavaScript features.</p>
+      <a href="#contact" class="cta-btn">Get In Touch</a>
+    </section>
 
-  <!-- Main Viewports -->
-  <main class="workspace">
-
-    <!-- PAGE 1: Grammar Definition -->
-    <div id="page1" class="page-view active">
-      <div class="panel-grid">
-        <section class="panel">
-          <div class="panel-header">
-            <h3>Production Grammar Definition</h3>
-            <div class="preset-selector">
-              <label for="grammarPresets">Preset:</label>
-              <select id="grammarPresets">
-                <option value="arithmetic">Standard Arithmetic (Requires Refactoring)</option>
-                <option value="danglingElse">Dangling-Else Statement (Non-LL1)</option>
-                <option value="simpleExpr">Simple Expression Grammar (Valid LL1)</option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="editor-container">
-            <textarea id="grammarInput" spellcheck="false" placeholder="Enter rules here...">E -> E + T | T
-T -> T * F | F
-F -> ( E ) | id</textarea>
-          </div>
-
-          <div class="panel-footer">
-            <button id="btnEliminateLR" class="btn btn-secondary">Remove Left Recursion</button>
-            <button id="btnComputeSets" class="btn btn-primary">Build Parsing Engine →</button>
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-header">
-            <h3>Transformed Grammar Output</h3>
-            <span class="status-badge neutral">Normalized</span>
-          </div>
-          <div class="code-output-container">
-            <pre id="refinedGrammarOutput">// Transformed rules will appear here after engine compilation...</pre>
-          </div>
-        </section>
+    <!-- Features Section -->
+    <section class="features">
+      <div class="card">
+        <h3>Feature One</h3>
+        <p>Describe your first project, highlight, or service here in detail.</p>
       </div>
-    </div>
+      <div class="card">
+        <h3>Feature Two</h3>
+        <p>Describe your second key project feature or highlight here.</p>
+      </div>
+      <div class="card">
+        <h3>Feature Three</h3>
+        <p>Describe another key detail or showcase item on your website.</p>
+      </div>
+    </section>
 
-    <!-- PAGE 2: Set Computation & Parsing Matrix -->
-    <div id="page2" class="page-view">
-      <section class="panel mb-16">
-        <div class="panel-header">
-          <h3>FIRST & FOLLOW Set Analysis</h3>
-        </div>
-        <div id="firstFollowContainer" class="table-wrapper">
-          <p class="placeholder-text">Run the parsing engine on Page 1 to view computed sets.</p>
-        </div>
-      </section>
+    <!-- Contact Form Section -->
+    <section id="contact">
+      <div class="contact-container">
+        <h2>Contact Me</h2>
+        <p>Send me a message below and I will get back to you soon.</p>
 
-      <section class="panel">
-        <div class="panel-header">
-          <h3>LL(1) Predictive Parsing Table</h3>
-          <span id="badgeLL1Status" class="status-badge success">LL(1) Valid</span>
-        </div>
-        <div id="ll1TableContainer" class="table-wrapper">
-          <p class="placeholder-text">Parsing matrix will render here.</p>
-        </div>
-        <div class="panel-footer align-right">
-          <button id="btnToPage3" class="btn btn-primary">Open Simulator →</button>
-        </div>
-      </section>
-    </div>
+        <form action="https://api.web3forms.com/submit" method="POST" class="contact-form">
+          <!-- Replace YOUR_ACCESS_KEY_HERE with your key from https://web3forms.com -->
+          <input type="hidden" name="access_key" value="YOUR_ACCESS_KEY_HERE" />
 
-    <!-- PAGE 3: Execution Trace & AST Visualizer -->
-    <div id="page3" class="page-view">
-      <section class="panel mb-16">
-        <div class="panel-header">
-          <h3>Input Token Simulator</h3>
-        </div>
-        <div class="sim-toolbar">
-          <div class="input-field-group">
-            <label for="simInput">Tokens:</label>
-            <input type="text" id="simInput" value="id + id * id" spellcheck="false" placeholder="e.g. id + id * id">
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" placeholder="Your Name" required />
           </div>
-          <div class="action-buttons">
-            <button id="btnStartSim" class="btn btn-secondary">Initialize Stack</button>
-            <button id="btnStepSim" class="btn btn-primary" disabled>Step Forward</button>
+
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="you@example.com" required />
           </div>
-        </div>
-        <div id="simLogContainer" class="table-wrapper">
-          <p class="placeholder-text">Initialize the stack to trace string processing steps.</p>
-        </div>
-      </section>
 
-      <section class="panel">
-        <div class="panel-header">
-          <h3>Abstract Syntax Tree (AST) Visualizer</h3>
-        </div>
-        <div id="parseTreeCanvas" class="canvas-viewport">
-          <p class="placeholder-text">Tree will generate progressively during stepping.</p>
-        </div>
-      </section>
-    </div>
+          <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" rows="4" placeholder="Your message here..." required></textarea>
+          </div>
 
+          <button type="submit" class="submit-btn">Send Message</button>
+        </form>
+      </div>
+    </section>
   </main>
 
-  <script src="app.js"></script>
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2026 My Webpage. All rights reserved.</p>
+  </footer>
+
+  <!-- Back to Top Button -->
+  <button id="backToTop" title="Back to top">↑</button>
+
+  <!-- JavaScript Functionality -->
+  <script>
+    // 1. Dark Mode Toggle Script
+    const toggleBtn = document.getElementById('theme-toggle');
+    
+    toggleBtn.addEventListener('click', () => {
+      const currentTheme = document.body.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      document.body.setAttribute('data-theme', newTheme);
+      toggleBtn.textContent = newTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+    });
+
+    // 2. Back to Top Button Visibility Script
+    const backToTopBtn = document.getElementById('backToTop');
+
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        backToTopBtn.style.display = 'block';
+      } else {
+        backToTopBtn.style.display = 'none';
+      }
+    });
+
+    backToTopBtn.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+  </script>
 </body>
 </html>
