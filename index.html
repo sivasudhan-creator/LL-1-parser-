@@ -140,5 +140,42 @@ F -> ( E ) | id</textarea>
   </main>
 
   <script src="app.js"></script>
+  <script>
+    // Tab Navigation Logic
+    document.addEventListener('DOMContentLoaded', () => {
+      const tabs = document.querySelectorAll('.tab-btn');
+      const pages = document.querySelectorAll('.page-view');
+
+      function switchPage(pageId) {
+        pages.forEach(page => {
+          page.classList.toggle('active', page.id === pageId);
+        });
+        tabs.forEach(tab => {
+          tab.classList.toggle('active', tab.getAttribute('data-page') === pageId);
+        });
+      }
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          switchPage(tab.getAttribute('data-page'));
+        });
+      });
+
+      const btnComputeSets = document.getElementById('btnComputeSets');
+      if (btnComputeSets) {
+        btnComputeSets.addEventListener('click', () => {
+          if (typeof updateAll === 'function') updateAll();
+          switchPage('page2');
+        });
+      }
+
+      const btnToPage3 = document.getElementById('btnToPage3');
+      if (btnToPage3) {
+        btnToPage3.addEventListener('click', () => {
+          switchPage('page3');
+        });
+      }
+    });
+  </script>
 </body>
 </html>
