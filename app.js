@@ -480,14 +480,76 @@ function renderSimpleAST() {
     return;
   }
 
-  let treeHtml = `<div style="padding: 16px; font-family: monospace; color: #38bdf8;">`;
-  treeHtml += `<strong>Generated Execution Steps:</strong><br><br>`;
-  simulator.stepHistory.forEach(s => {
-    if (s.rule) treeHtml += `• ${s.rule}<br>`;
-  });
-  treeHtml += `</div>`;
+  // Filter out applied grammar rules
+  const appliedRules = simulator.stepHistory
+    .filter(s => s.rule && s.rule.includes('->'))
+    .map(s => {
+      const parts = s.rule.split('->');
+      return {
+        head: parts[0].trim(),
+        body: parts[1].trim().split(/\s+/)
+      };
+    });
 
-  canvas.innerHTML = treeHtml;
+  if (appliedRules.length === 0) {
+    canvas.innerHTML = `<div style="padding: 16px; color: #94a3b8;">Initialize and step forward to generate the parse tree.</div>`;
+    return;
+  }
+
+  // Build tree data object
+  const rootSymbol = appliedRules[0].head;
+  const tree = { name: rootSymbol, children: [] };
+
+  function buildTree(node) {
+    const ruleIndex = appliedRules.findIndex(r => r.head === node.name && !r.used);
+    if (ruleIndex !== -1) {
+      const rule = appliedRules[ruleIndex];
+      rule.used = true; // Mark as processed
+      rule.body.forEach(symbol => {
+        const childNode = { name: symbol, children: [] };
+        node.children.push(childNode);
+        if (engine.nonTerminals.includes(symbol)) {
+          buildTree(childNode);
+        }
+      });
+    }
+  }
+
+  buildTree(tree);
+
+  // Render HTML tree nodes recursively with branch connectors
+  function generateTreeHTML(node, prefix = '', isLast = true) {
+    const isNonTerminal = engine.nonTerminals.includes(node.name);
+    const badgeColor = isNonTerminal ? '#38bdf8' : '#34d399';
+    const bgStyle = isNonTerminal ? 'rgba(56, 189, 248, 0.15)' : 'rgba(52, 211, 153, 0.15)';
+    
+    const connector = prefix ? (isLast ? '└── ' : '├── ') : '';
+    let html = `<div style="font-family: monospace; font-size: 14px; line-height: 1.8; color: #94a3b8;">`;
+    
+    html += `<span>${prefix.replace(/ /g, '&nbsp;')}${connector}</span>`;
+    html += `<span style="display: inline-block; padding: 2px 8px; border-radius: 4px; background: ${bgStyle}; color: ${badgeColor}; font-weight: 600;">${node.name}</span>`;
+    html += `</div>`;
+
+    const newPrefix = prefix + (isLast ? '&nbsp;&nbsp;&nbsp;&nbsp;' : '│&nbsp;&nbsp;&nbsp;');
+    if (node.children && node.children.length > 0) {
+      node.children.forEach((child, index) => {
+        const childIsLast = index === node.children.length - 1;
+        html += generateTreeHTML(child, newPrefix, childIsLast);
+      });
+    }
+
+    return html;
+  }
+
+  // Reset rule processing flags for re-rendering
+  appliedRules.forEach(r => delete r.used);
+
+  canvas.innerHTML = `
+    <div style="padding: 20px; background: #090d16; border-radius: 8px; border: 1px solid #334155; overflow-x: auto;">
+      <h4 style="margin: 0 0 16px 0; color: #f8fafc; font-family: sans-serif;">Concrete Syntax Tree (AST)</h4>
+      ${generateTreeHTML(tree)}
+    </div>
+  `;
 }
 
 function updateAll() {
