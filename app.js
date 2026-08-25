@@ -3,7 +3,7 @@
 // ==========================================
 class GrammarEngine {
   constructor() {
-    this.rules = new Map(); // Non-terminal -> Array of symbol arrays
+    this.rules = new Map();
     this.nonTerminals = [];
     this.terminals = new Set();
     this.startSymbol = null;
@@ -14,7 +14,6 @@ class GrammarEngine {
     this.conflictsList = [];
   }
 
-  // Parse raw text grammar (e.g., E -> E + T | T)
   parseInput(inputText) {
     this.rules.clear();
     this.nonTerminals = [];
@@ -44,7 +43,6 @@ class GrammarEngine {
       this.rules.get(head).push(...productions);
     });
 
-    // Identify Terminals
     this.rules.forEach((prods) => {
       prods.forEach(prod => {
         prod.forEach(symbol => {
@@ -54,14 +52,13 @@ class GrammarEngine {
         });
       });
     });
-    this.terminals.add('$'); // End of input marker
+    this.terminals.add('$');
 
     this.computeFirstSets();
     this.computeFollowSets();
     this.buildParsingTable();
   }
 
-  // Compute FIRST Sets
   computeFirstSets() {
     this.firstSets.clear();
     this.nonTerminals.forEach(nt => this.firstSets.set(nt, new Set()));
@@ -108,7 +105,6 @@ class GrammarEngine {
     }
   }
 
-  // Get FIRST set of a sequence of symbols
   getFirstOfSequence(sequence) {
     const result = new Set();
     let allHaveEpsilon = true;
@@ -138,7 +134,6 @@ class GrammarEngine {
     return result;
   }
 
-  // Compute FOLLOW Sets
   computeFollowSets() {
     this.followSets.clear();
     this.nonTerminals.forEach(nt => this.followSets.set(nt, new Set()));
@@ -181,7 +176,6 @@ class GrammarEngine {
     }
   }
 
-  // 1. Feature: Step-by-Step Left Recursion Removal
   eliminateLeftRecursion() {
     const newRules = new Map();
     const newNonTerminals = [];
@@ -209,9 +203,9 @@ class GrammarEngine {
         newRules.set(A_prime, newAPrimeProds);
 
         stepsLog.push(
-          `Step 1: Left recursion detected\n  ${A} -> ${prods.map(p => p.join(' ')).join(' | ')}\n\n` +
+          `Step 1: Left recursion detected in '${A}'\n  ${A} -> ${prods.map(p => p.join(' ')).join(' | ')}\n\n` +
           `Step 2: Removing left recursion...\n\n` +
-          `Step 3: Refined grammar\n  ${A} -> ${newAProds.map(p => p.join(' ')).join(' | ')}\n  ${A_prime} -> ${newAPrimeProds.map(p => p.join(' ')).join(' | ')}`
+          `Step 3: Refined grammar:\n  ${A} -> ${newAProds.map(p => p.join(' ')).join(' | ')}\n  ${A_prime} -> ${newAPrimeProds.map(p => p.join(' ')).join(' | ')}`
         );
       } else {
         newNonTerminals.push(A);
@@ -222,7 +216,6 @@ class GrammarEngine {
     this.rules = newRules;
     this.nonTerminals = [...new Set(newNonTerminals)];
 
-    // Recompute engine properties after grammar updates
     this.computeFirstSets();
     this.computeFollowSets();
     this.buildParsingTable();
@@ -232,7 +225,6 @@ class GrammarEngine {
       : 'No left recursion detected in this grammar.';
   }
 
-  // 2. Feature: Build Parsing Table & Track Conflicts
   buildParsingTable() {
     this.parsingTable.clear();
     this.hasConflicts = false;
@@ -295,9 +287,102 @@ class GrammarEngine {
 }
 
 // ==========================================
+// Parsing Simulator Engine (Page 3)
+// ==========================================
+class SimulatorEngine {
+  constructor(grammarEngine) {
+    this.engine = grammarEngine;
+    this.stack = [];
+    this.inputTokens = [];
+    this.tokenIndex = 0;
+    this.stepHistory = [];
+    this.isFinished = false;
+    this.treeData = null;
+  }
+
+  init(inputStr) {
+    this.stack = ['$', this.engine.startSymbol];
+    this.inputTokens = inputStr.trim().split(/\s+/).filter(t => t !== '');
+    this.inputTokens.push('$');
+    this.tokenIndex = 0;
+    this.stepHistory = [];
+    this.isFinished = false;
+
+    this.treeData = {
+      name: this.engine.startSymbol,
+      children: []
+    };
+
+    this.logStep('Initialization', 'Stack initialized with start symbol.');
+  }
+
+  logStep(action, ruleUsed = '') {
+    const remainingInput = this.inputTokens.slice(this.tokenIndex).join(' ');
+    const stackStr = [...this.stack].reverse().join(' ');
+    this.stepHistory.push({
+      step: this.stepHistory.length + 1,
+      stack: stackStr,
+      input: remainingInput,
+      action: action,
+      rule: ruleUsed
+    });
+  }
+
+  step() {
+    if (this.isFinished) return false;
+
+    const top = this.stack[this.stack.length - 1];
+    const currentToken = this.inputTokens[this.tokenIndex];
+
+    if (top === '$' && currentToken === '$') {
+      this.stack.pop();
+      this.logStep('Accepted', 'String successfully parsed!');
+      this.isFinished = true;
+      return false;
+    }
+
+    if (top === currentToken) {
+      this.stack.pop();
+      this.tokenIndex++;
+      this.logStep(`Matched '${currentToken}'`, '');
+      return true;
+    }
+
+    if (this.engine.nonTerminals.includes(top)) {
+      const row = this.engine.parsingTable.get(top);
+      const cell = row ? row.get(currentToken) : null;
+
+      if (!cell || cell.length === 0) {
+        this.logStep('Error', `No production for M[${top}, ${currentToken}]`);
+        this.isFinished = true;
+        return false;
+      }
+
+      const prod = cell[0];
+      this.stack.pop();
+
+      if (prod[0] !== 'ε' && prod[0] !== 'e') {
+        for (let i = prod.length - 1; i >= 0; i--) {
+          this.stack.push(prod[i]);
+        }
+      }
+
+      const ruleStr = `${top} -> ${prod.join(' ')}`;
+      this.logStep(`Apply ${ruleStr}`, ruleStr);
+      return true;
+    }
+
+    this.logStep('Error', `Unexpected token '${currentToken}'`);
+    this.isFinished = true;
+    return false;
+  }
+}
+
+// ==========================================
 // UI Rendering & Event Handling
 // ==========================================
 const engine = new GrammarEngine();
+const simulator = new SimulatorEngine(engine);
 
 function renderFirstFollow() {
   const container = document.getElementById('firstFollowContainer');
@@ -317,6 +402,7 @@ function renderFirstFollow() {
 
 function renderTable() {
   const container = document.getElementById('ll1TableContainer');
+  const badge = document.getElementById('badgeLL1Status');
   if (!container) return;
 
   const terms = Array.from(engine.terminals);
@@ -342,7 +428,16 @@ function renderTable() {
   });
   html += '</tbody></table>';
 
-  // Render detailed conflict breakdown section below table
+  if (badge) {
+    if (engine.hasConflicts) {
+      badge.textContent = 'Non-LL(1) Conflicts';
+      badge.className = 'status-badge danger';
+    } else {
+      badge.textContent = 'LL(1) Valid';
+      badge.className = 'status-badge success';
+    }
+  }
+
   if (engine.hasConflicts && engine.conflictsList.length > 0) {
     html += `<div style="margin-top: 16px; padding: 16px; background: rgba(239, 68, 68, 0.1); border: 1px solid #dc2626; border-radius: 8px;">`;
     html += `<h4 style="color: #f87171; margin: 0 0 12px 0;">⚠ LL(1) Conflict Detected</h4>`;
@@ -362,6 +457,39 @@ function renderTable() {
   container.innerHTML = html;
 }
 
+function renderSimLog() {
+  const container = document.getElementById('simLogContainer');
+  if (!container) return;
+
+  let html = '<table><thead><tr><th>Step</th><th>Stack</th><th>Input</th><th>Action</th></tr></thead><tbody>';
+
+  simulator.stepHistory.forEach(s => {
+    html += `<tr><td>${s.step}</td><td style="font-family: monospace;">${s.stack}</td><td style="font-family: monospace;">${s.input}</td><td>${s.action}</td></tr>`;
+  });
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function renderSimpleAST() {
+  const canvas = document.getElementById('parseTreeCanvas');
+  if (!canvas) return;
+
+  if (simulator.stepHistory.length === 0) {
+    canvas.innerHTML = `<p class="placeholder-text">Tree will generate progressively during stepping.</p>`;
+    return;
+  }
+
+  let treeHtml = `<div style="padding: 16px; font-family: monospace; color: #38bdf8;">`;
+  treeHtml += `<strong>Generated Execution Steps:</strong><br><br>`;
+  simulator.stepHistory.forEach(s => {
+    if (s.rule) treeHtml += `• ${s.rule}<br>`;
+  });
+  treeHtml += `</div>`;
+
+  canvas.innerHTML = treeHtml;
+}
+
 function updateAll() {
   const input = document.getElementById('grammarInput');
   if (input) {
@@ -371,14 +499,33 @@ function updateAll() {
   }
 }
 
-// Event Listeners
+// Preset Handler
+const presets = {
+  arithmetic: "E -> E + T | T\nT -> T * F | F\nF -> ( E ) | id",
+  danglingElse: "S -> i C t S S' | a\nS' -> e S | ε\nC -> b",
+  simpleExpr: "E -> T E'\nE' -> + T E' | ε\nT -> F T'\nT' -> * F T' | ε\nF -> ( E ) | id"
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   const grammarInput = document.getElementById('grammarInput');
   const btnEliminateLR = document.getElementById('btnEliminateLR');
+  const btnStartSim = document.getElementById('btnStartSim');
+  const btnStepSim = document.getElementById('btnStepSim');
+  const grammarPresets = document.getElementById('grammarPresets');
 
   if (grammarInput) {
     grammarInput.addEventListener('input', updateAll);
-    updateAll(); // Initial run
+    updateAll();
+  }
+
+  if (grammarPresets) {
+    grammarPresets.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (presets[val]) {
+        grammarInput.value = presets[val];
+        updateAll();
+      }
+    });
   }
 
   if (btnEliminateLR) {
@@ -387,12 +534,43 @@ document.addEventListener('DOMContentLoaded', () => {
       const explanation = engine.eliminateLeftRecursion();
       
       const outputElem = document.getElementById('refinedGrammarOutput');
-      if (outputElem) {
+      if (outputElem && grammarInput) {
+        let cleanGrammar = '';
+        engine.rules.forEach((prods, head) => {
+          cleanGrammar += `${head} -> ${prods.map(p => p.join(' ')).join(' | ')}\n`;
+        });
+        grammarInput.value = cleanGrammar.trim();
         outputElem.textContent = explanation;
       }
       
       renderFirstFollow();
       renderTable();
+    });
+  }
+
+  if (btnStartSim) {
+    btnStartSim.addEventListener('click', () => {
+      const simInput = document.getElementById('simInput');
+      const inputStr = simInput ? simInput.value : 'id + id * id';
+      
+      updateAll();
+      simulator.init(inputStr);
+      renderSimLog();
+      renderSimpleAST();
+
+      if (btnStepSim) btnStepSim.disabled = false;
+    });
+  }
+
+  if (btnStepSim) {
+    btnStepSim.addEventListener('click', () => {
+      const hasMore = simulator.step();
+      renderSimLog();
+      renderSimpleAST();
+
+      if (!hasMore || simulator.isFinished) {
+        btnStepSim.disabled = true;
+      }
     });
   }
 });
