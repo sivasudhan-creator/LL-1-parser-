@@ -1,143 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LL(1) Grammar Engine & Studio</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LL(1) Parser & Grammar Analyzer</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-color: #f8fafc;
+      --accent-color: #3b82f6;
+      --border-color: #334155;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 24px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    h1, h2, h3, h4 {
+      margin-top: 0;
+      color: #ffffff;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      background: #090d16;
+      color: #38bdf8;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 14px;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+
+    button {
+      background-color: var(--accent-color);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #2563eb;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #0f172a;
+      color: #94a3b8;
+    }
+
+    pre {
+      background: #090d16;
+      border: 1px solid var(--border-color);
+      padding: 14px;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      color: #a7f3d0;
+      margin-top: 12px;
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Top Application Bar -->
-  <header class="app-header">
-    <div class="brand">
-      <span class="brand-logo">/&gt;</span>
-      <span class="brand-title">LL(1) Parser Studio</span>
-      <span class="version-tag">v2.4</span>
-    </div>
-    <div class="header-status">
-      <span class="status-indicator"></span> Engine Ready
-    </div>
-  </header>
+  <div class="container">
+    <h1>LL(1) Grammar Analyzer & Parser</h1>
 
-  <!-- Segmented Navigation -->
-  <nav class="nav-bar">
-    <div class="nav-tabs">
-      <button class="tab-btn active" data-page="page1">
-        <span class="tab-idx">01</span> Grammar Input
-      </button>
-      <button class="tab-btn" data-page="page2">
-        <span class="tab-idx">02</span> Analysis & Matrix
-      </button>
-      <button class="tab-btn" data-page="page3">
-        <span class="tab-idx">03</span> Execution Trace & AST
-      </button>
-    </div>
-  </nav>
-
-  <!-- Main Viewports -->
-  <main class="workspace">
-
-    <!-- PAGE 1: Grammar Definition -->
-    <div id="page1" class="page-view active">
-      <div class="panel-grid">
-        <section class="panel">
-          <div class="panel-header">
-            <h3>Production Grammar Definition</h3>
-            <div class="preset-selector">
-              <label for="grammarPresets">Preset:</label>
-              <select id="grammarPresets">
-                <option value="arithmetic">Standard Arithmetic (Requires Refactoring)</option>
-                <option value="danglingElse">Dangling-Else Statement (Non-LL1)</option>
-                <option value="simpleExpr">Simple Expression Grammar (Valid LL1)</option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="editor-container">
-            <textarea id="grammarInput" spellcheck="false" placeholder="Enter rules here...">E -> E + T | T
+    <!-- Grammar Input Module -->
+    <div class="card">
+      <h2>1. Grammar Input</h2>
+      <p style="color: #94a3b8; font-size: 14px;">Enter your Context-Free Grammar below (e.g., E -> E + T | T):</p>
+      <textarea id="grammarInput">E -> E + T | T
 T -> T * F | F
 F -> ( E ) | id</textarea>
-          </div>
-
-          <div class="panel-footer">
-            <button id="btnEliminateLR" class="btn btn-secondary">Remove Left Recursion</button>
-            <button id="btnComputeSets" class="btn btn-primary">Build Parsing Engine →</button>
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-header">
-            <h3>Transformed Grammar Output</h3>
-            <span class="status-badge neutral">Normalized</span>
-          </div>
-          <div class="code-output-container">
-            <pre id="refinedGrammarOutput">// Transformed rules will appear here after engine compilation...</pre>
-          </div>
-        </section>
-      </div>
+      <br />
+      <button id="btnEliminateLR">Eliminate Left Recursion</button>
     </div>
 
-    <!-- PAGE 2: Set Computation & Parsing Matrix -->
-    <div id="page2" class="page-view">
-      <section class="panel mb-16">
-        <div class="panel-header">
-          <h3>FIRST & FOLLOW Set Analysis</h3>
-        </div>
-        <div id="firstFollowContainer" class="table-wrapper">
-          <p class="placeholder-text">Run the parsing engine on Page 1 to view computed sets.</p>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-header">
-          <h3>LL(1) Predictive Parsing Table</h3>
-          <span id="badgeLL1Status" class="status-badge success">LL(1) Valid</span>
-        </div>
-        <div id="ll1TableContainer" class="table-wrapper">
-          <p class="placeholder-text">Parsing matrix will render here.</p>
-        </div>
-        <div class="panel-footer align-right">
-          <button id="btnToPage3" class="btn btn-primary">Open Simulator →</button>
-        </div>
-      </section>
+    <!-- Left Recursion Output Module -->
+    <div class="card">
+      <h2>2. Step-by-Step Refined Grammar</h2>
+      <pre id="refinedGrammarOutput">Click "Eliminate Left Recursion" above to view transformation steps...</pre>
     </div>
 
-    <!-- PAGE 3: Execution Trace & AST Visualizer -->
-    <div id="page3" class="page-view">
-      <section class="panel mb-16">
-        <div class="panel-header">
-          <h3>Input Token Simulator</h3>
-        </div>
-        <div class="sim-toolbar">
-          <div class="input-field-group">
-            <label for="simInput">Tokens:</label>
-            <input type="text" id="simInput" value="id + id * id" spellcheck="false" placeholder="e.g. id + id * id">
-          </div>
-          <div class="action-buttons">
-            <button id="btnStartSim" class="btn btn-secondary">Initialize Stack</button>
-            <button id="btnStepSim" class="btn btn-primary" disabled>Step Forward</button>
-          </div>
-        </div>
-        <div id="simLogContainer" class="table-wrapper">
-          <p class="placeholder-text">Initialize the stack to trace string processing steps.</p>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-header">
-          <h3>Abstract Syntax Tree (AST) Visualizer</h3>
-        </div>
-        <div id="parseTreeCanvas" class="canvas-viewport">
-          <p class="placeholder-text">Tree will generate progressively during stepping.</p>
-        </div>
-      </section>
+    <!-- FIRST / FOLLOW Sets Module -->
+    <div class="card">
+      <h2>3. FIRST & FOLLOW Sets</h2>
+      <div id="firstFollowContainer"></div>
     </div>
 
-  </main>
+    <!-- LL(1) Parsing Table Module -->
+    <div class="card">
+      <h2>4. LL(1) Parsing Table & Conflict Analysis</h2>
+      <div id="ll1TableContainer"></div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
